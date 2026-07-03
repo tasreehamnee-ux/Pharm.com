@@ -1,6 +1,6 @@
-# [Project name]
+# نظام الصيدلية الذكي (Smart Pharmacy Management System)
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A desktop-style pharmacy management web app (Arabic, RTL) for managing medicine inventory, point-of-sale checkout, sales history, purchases from suppliers, customers, and suppliers.
 
 ## Run & Operate
 
@@ -22,23 +22,35 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- API spec (source of truth for endpoints/types): `lib/api-spec/openapi.yaml`
+- DB schema: `lib/db/src/schema/` (medicines, customers, suppliers, sales + saleItems, purchases + purchaseItems)
+- API routes: `artifacts/api-server/src/routes/` (medicines, customers, suppliers, sales, purchases, dashboard)
+- Frontend pages: `artifacts/pharmacy/src/pages/` (Dashboard, POS, Medicines, Sales, Purchases, Customers, Suppliers)
+- Seed script: `scripts/src/seed.ts` (run with `pnpm --filter @workspace/scripts run seed`)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Single artifact (free-tier constraint): `artifacts/pharmacy` is the only web app; `artifacts/api-server` serves the backend at `/api`.
+- Sale creation decrements medicine stock per line item inside a DB transaction (rejects if insufficient stock); deleting/voiding a sale restores stock. Purchase creation increments stock.
+- Prices/totals are stored as Postgres `numeric` (strings via Drizzle) but exposed as JS numbers over the API — each route file has a `serialize*` helper that converts before Zod validation.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Dashboard: today's sales/revenue, low-stock and expiring-soon alerts, recent sales.
+- POS: search medicines, build a cart, choose customer/payment method, checkout (auto-decrements stock).
+- Medicines: full CRUD inventory management with stock/expiry tracking.
+- Sales: history of past invoices, view details, void (restores stock).
+- Purchases: record incoming stock from suppliers (auto-increments stock).
+- Customers & Suppliers: full CRUD contact management.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- User communicates in Arabic; UI defaults to Arabic with RTL layout.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Postgres `numeric` columns come back as strings from Drizzle — always convert to `Number()` before validating against the generated Zod response schemas (see `.agents/memory/drizzle-gotchas.md`).
+- Use Drizzle's `inArray()` for "match any of these IDs" queries — raw `sql\`ANY(${array})\`` fails with the node-postgres driver.
 
 ## Pointers
 

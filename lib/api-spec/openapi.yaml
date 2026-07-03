@@ -3,13 +3,25 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Smart Pharmacy Management System API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: medicines
+    description: Medicine inventory operations
+  - name: customers
+    description: Customer operations
+  - name: suppliers
+    description: Supplier operations
+  - name: sales
+    description: Sales / POS operations
+  - name: purchases
+    description: Purchase order operations
+  - name: dashboard
+    description: Dashboard summary operations
 paths:
   /healthz:
     get:
@@ -24,6 +36,458 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /medicines:
+    get:
+      operationId: listMedicines
+      tags: [medicines]
+      summary: List all medicines
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of medicines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Medicine"
+    post:
+      operationId: createMedicine
+      tags: [medicines]
+      summary: Create a medicine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MedicineInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medicine"
+
+  /medicines/low-stock:
+    get:
+      operationId: listLowStockMedicines
+      tags: [medicines]
+      summary: List medicines at or below minimum quantity
+      responses:
+        "200":
+          description: Low stock medicines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Medicine"
+
+  /medicines/expiring-soon:
+    get:
+      operationId: listExpiringSoonMedicines
+      tags: [medicines]
+      summary: List medicines expiring within 90 days
+      responses:
+        "200":
+          description: Expiring soon medicines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Medicine"
+
+  /medicines/{id}:
+    get:
+      operationId: getMedicine
+      tags: [medicines]
+      summary: Get a medicine by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Medicine
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medicine"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateMedicine
+      tags: [medicines]
+      summary: Update a medicine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MedicineUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medicine"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteMedicine
+      tags: [medicines]
+      summary: Delete a medicine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List all customers
+      responses:
+        "200":
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get a customer by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Delete a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /suppliers:
+    get:
+      operationId: listSuppliers
+      tags: [suppliers]
+      summary: List all suppliers
+      responses:
+        "200":
+          description: List of suppliers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Supplier"
+    post:
+      operationId: createSupplier
+      tags: [suppliers]
+      summary: Create a supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+
+  /suppliers/{id}:
+    get:
+      operationId: getSupplier
+      tags: [suppliers]
+      summary: Get a supplier by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Supplier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateSupplier
+      tags: [suppliers]
+      summary: Update a supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteSupplier
+      tags: [suppliers]
+      summary: Delete a supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /sales:
+    get:
+      operationId: listSales
+      tags: [sales]
+      summary: List all sales (most recent first)
+      responses:
+        "200":
+          description: List of sales
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sale"
+    post:
+      operationId: createSale
+      tags: [sales]
+      summary: Create a sale (POS checkout) and decrement medicine stock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+        "400":
+          description: Invalid input (e.g. insufficient stock)
+
+  /sales/{id}:
+    get:
+      operationId: getSale
+      tags: [sales]
+      summary: Get a sale by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Sale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteSale
+      tags: [sales]
+      summary: Delete (void) a sale and restore stock
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /purchases:
+    get:
+      operationId: listPurchases
+      tags: [purchases]
+      summary: List all purchase orders (most recent first)
+      responses:
+        "200":
+          description: List of purchases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Purchase"
+    post:
+      operationId: createPurchase
+      tags: [purchases]
+      summary: Create a purchase order and increment medicine stock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchaseInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purchase"
+
+  /purchases/{id}:
+    get:
+      operationId: getPurchase
+      tags: [purchases]
+      summary: Get a purchase by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Purchase
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purchase"
+        "404":
+          description: Not found
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard summary statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +498,286 @@ components:
       required:
         - status
 
+    Medicine:
+      type: object
+      required:
+        - id
+        - name
+        - category
+        - manufacturer
+        - barcode
+        - unit
+        - quantity
+        - minQuantity
+        - purchasePrice
+        - sellingPrice
+        - expiryDate
+        - batchNumber
+        - createdAt
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        category: { type: string }
+        manufacturer: { type: string }
+        barcode: { type: string }
+        unit: { type: string }
+        quantity: { type: integer }
+        minQuantity: { type: integer }
+        purchasePrice: { type: number }
+        sellingPrice: { type: number }
+        expiryDate: { type: string, format: date }
+        batchNumber: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    MedicineInput:
+      type: object
+      required:
+        - name
+        - category
+        - manufacturer
+        - barcode
+        - unit
+        - quantity
+        - minQuantity
+        - purchasePrice
+        - sellingPrice
+        - expiryDate
+        - batchNumber
+      properties:
+        name: { type: string, minLength: 1 }
+        category: { type: string, minLength: 1 }
+        manufacturer: { type: string }
+        barcode: { type: string }
+        unit: { type: string }
+        quantity: { type: integer, minimum: 0 }
+        minQuantity: { type: integer, minimum: 0 }
+        purchasePrice: { type: number, minimum: 0 }
+        sellingPrice: { type: number, minimum: 0 }
+        expiryDate: { type: string, format: date }
+        batchNumber: { type: string }
+
+    MedicineUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        category: { type: string }
+        manufacturer: { type: string }
+        barcode: { type: string }
+        unit: { type: string }
+        quantity: { type: integer, minimum: 0 }
+        minQuantity: { type: integer, minimum: 0 }
+        purchasePrice: { type: number, minimum: 0 }
+        sellingPrice: { type: number, minimum: 0 }
+        expiryDate: { type: string, format: date }
+        batchNumber: { type: string }
+
+    Customer:
+      type: object
+      required:
+        - id
+        - name
+        - phone
+        - address
+        - createdAt
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        phone: { type: string }
+        address: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+
+    CustomerInput:
+      type: object
+      required:
+        - name
+        - phone
+      properties:
+        name: { type: string, minLength: 1 }
+        phone: { type: string, minLength: 1 }
+        address: { type: string }
+
+    CustomerUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        phone: { type: string, minLength: 1 }
+        address: { type: string }
+
+    Supplier:
+      type: object
+      required:
+        - id
+        - name
+        - phone
+        - address
+        - createdAt
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        phone: { type: string }
+        address: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+
+    SupplierInput:
+      type: object
+      required:
+        - name
+        - phone
+      properties:
+        name: { type: string, minLength: 1 }
+        phone: { type: string, minLength: 1 }
+        address: { type: string }
+
+    SupplierUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        phone: { type: string, minLength: 1 }
+        address: { type: string }
+
+    SaleItem:
+      type: object
+      required:
+        - id
+        - medicineId
+        - medicineName
+        - quantity
+        - unitPrice
+        - subtotal
+      properties:
+        id: { type: integer }
+        medicineId: { type: integer }
+        medicineName: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+        subtotal: { type: number }
+
+    SaleItemInput:
+      type: object
+      required:
+        - medicineId
+        - quantity
+      properties:
+        medicineId: { type: integer }
+        quantity: { type: integer, minimum: 1 }
+
+    Sale:
+      type: object
+      required:
+        - id
+        - customerId
+        - customerName
+        - paymentMethod
+        - total
+        - items
+        - createdAt
+      properties:
+        id: { type: integer }
+        customerId: { type: ["integer", "null"] }
+        customerName: { type: ["string", "null"] }
+        paymentMethod: { type: string, enum: [cash, card, insurance] }
+        total: { type: number }
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SaleItem"
+        createdAt: { type: string, format: date-time }
+
+    SaleInput:
+      type: object
+      required:
+        - paymentMethod
+        - items
+      properties:
+        customerId: { type: integer }
+        paymentMethod: { type: string, enum: [cash, card, insurance] }
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/SaleItemInput"
+
+    PurchaseItem:
+      type: object
+      required:
+        - id
+        - medicineId
+        - medicineName
+        - quantity
+        - unitCost
+        - subtotal
+      properties:
+        id: { type: integer }
+        medicineId: { type: integer }
+        medicineName: { type: string }
+        quantity: { type: integer }
+        unitCost: { type: number }
+        subtotal: { type: number }
+
+    PurchaseItemInput:
+      type: object
+      required:
+        - medicineId
+        - quantity
+        - unitCost
+      properties:
+        medicineId: { type: integer }
+        quantity: { type: integer, minimum: 1 }
+        unitCost: { type: number, minimum: 0 }
+
+    Purchase:
+      type: object
+      required:
+        - id
+        - supplierId
+        - supplierName
+        - total
+        - items
+        - createdAt
+      properties:
+        id: { type: integer }
+        supplierId: { type: integer }
+        supplierName: { type: string }
+        total: { type: number }
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurchaseItem"
+        createdAt: { type: string, format: date-time }
+
+    PurchaseInput:
+      type: object
+      required:
+        - supplierId
+        - items
+      properties:
+        supplierId: { type: integer }
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PurchaseItemInput"
+
+    DashboardStats:
+      type: object
+      required:
+        - totalMedicines
+        - lowStockCount
+        - expiringSoonCount
+        - todaySalesTotal
+        - todaySalesCount
+        - totalRevenue
+        - totalCustomers
+        - recentSales
+      properties:
+        totalMedicines: { type: integer }
+        lowStockCount: { type: integer }
+        expiringSoonCount: { type: integer }
+        todaySalesTotal: { type: number }
+        todaySalesCount: { type: integer }
+        totalRevenue: { type: number }
+        totalCustomers: { type: integer }
+        recentSales:
+          type: array
+          items:
+            $ref: "#/components/schemas/Sale"

@@ -1,0 +1,1 @@
+- [Drizzle numeric/array gotchas](drizzle-gotchas.md) — numeric columns return strings (must Number() before Zod validation); `sql\`col = ANY(${array})\`` breaks with node-postgres, use `inArray()` instead.
