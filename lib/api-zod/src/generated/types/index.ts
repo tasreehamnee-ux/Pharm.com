@@ -25,6 +25,8 @@ export * from './saleInputPaymentMethod';
 export * from './saleItem';
 export * from './saleItemInput';
 export * from './salePaymentMethod';
+export * from './settings';
+export * from './settingsInput';
 export * from './supplier';
 export * from './supplierInput';
 export * from './supplierUpdate';

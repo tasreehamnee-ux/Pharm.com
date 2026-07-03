@@ -588,3 +588,37 @@ export const GetDashboardStatsResponse = zod.object({
 })
 
 
+/**
+ * @summary Get pharmacy settings
+ */
+export const GetSettingsResponse = zod.object({
+  "id": zod.number(),
+  "pharmacyName": zod.string(),
+  "phone": zod.string(),
+  "address": zod.string(),
+  "taxNumber": zod.string(),
+  "footerNote": zod.string()
+})
+
+
+/**
+ * @summary Update pharmacy settings
+ */
+export const UpdateSettingsBody = zod.object({
+  "pharmacyName": zod.string(),
+  "phone": zod.string(),
+  "address": zod.string(),
+  "taxNumber": zod.string(),
+  "footerNote": zod.string()
+})
+
+export const UpdateSettingsResponse = zod.object({
+  "id": zod.number(),
+  "pharmacyName": zod.string(),
+  "phone": zod.string(),
+  "address": zod.string(),
+  "taxNumber": zod.string(),
+  "footerNote": zod.string()
+})
+
+

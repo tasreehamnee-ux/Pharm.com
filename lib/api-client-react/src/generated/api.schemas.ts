@@ -209,6 +209,23 @@ export interface DashboardStats {
   recentSales: Sale[];
 }
 
+export interface Settings {
+  id: number;
+  pharmacyName: string;
+  phone: string;
+  address: string;
+  taxNumber: string;
+  footerNote: string;
+}
+
+export interface SettingsInput {
+  pharmacyName: string;
+  phone: string;
+  address: string;
+  taxNumber: string;
+  footerNote: string;
+}
+
 export type ListMedicinesParams = {
 search?: string;
 };
