@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { 
   useListMedicines, useCreateSale, useListCustomers, 
   getListSalesQueryKey, getListMedicinesQueryKey, getGetDashboardStatsQueryKey
@@ -6,11 +6,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ShoppingCart, Trash2, Plus, Minus, CreditCard, Banknote, ShieldPlus } from "lucide-react";
+import { Search, ShoppingCart, Trash2, Plus, Minus, CreditCard, Banknote, ShieldPlus, ScanBarcode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Medicine } from "@workspace/api-client-react";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { listMedicines } from "@workspace/api-client-react";
 
 export default function POS() {
   const [search, setSearch] = useState("");
@@ -20,6 +22,7 @@ export default function POS() {
   const [cart, setCart] = useState<{med: Medicine, qty: number}[]>([]);
   const [customerId, setCustomerId] = useState<string>("cash");
   const [paymentMethod, setPaymentMethod] = useState<'cash'|'card'|'insurance'>('cash');
+  const [scannerOpen, setScannerOpen] = useState(false);
   
   const createSale = useCreateSale();
   const queryClient = useQueryClient();
@@ -43,6 +46,22 @@ export default function POS() {
       return [...prev, { med, qty: 1 }];
     });
   };
+
+  const handleBarcodeDetected = useCallback(async (barcode: string) => {
+    try {
+      const results = await listMedicines({ search: barcode });
+      const match = results.find(m => m.barcode === barcode);
+      if (!match) {
+        toast({ title: "لم يتم العثور على الدواء", description: `لا يوجد دواء بالباركود ${barcode}`, variant: "destructive" });
+        return;
+      }
+      addToCart(match);
+      toast({ title: "تمت الإضافة", description: `${match.name} أُضيف إلى الفاتورة.` });
+    } catch {
+      toast({ title: "خطأ", description: "تعذر البحث عن الدواء بالباركود.", variant: "destructive" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart]);
 
   const removeFromCart = (id: number) => {
     setCart(prev => prev.filter(item => item.med.id !== id));
@@ -91,14 +110,25 @@ export default function POS() {
       <div className="flex-1 flex flex-col gap-4">
         <Card className="flex-1 flex flex-col overflow-hidden border-border shadow-sm">
           <CardHeader className="pb-3 border-b border-border bg-muted/30">
-            <div className="flex items-center space-x-2 space-x-reverse relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input 
-                placeholder="البحث بالاسم أو الباركود..." 
-                value={search} 
-                onChange={(e) => setSearch(e.target.value)}
-                className="pr-10 h-12 text-lg shadow-sm"
-              />
+            <div className="flex items-center gap-2">
+              <div className="flex-1 relative">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                  placeholder="البحث بالاسم أو الباركود..." 
+                  value={search} 
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pr-10 h-12 text-lg shadow-sm"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 gap-2 px-4 shadow-sm"
+                onClick={() => setScannerOpen(true)}
+              >
+                <ScanBarcode className="h-5 w-5" />
+                مسح بالكاميرا
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto p-4 bg-muted/10">
@@ -255,6 +285,12 @@ export default function POS() {
           </Button>
         </CardFooter>
       </Card>
+
+      <BarcodeScanner
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onDetected={handleBarcodeDetected}
+      />
     </div>
   );
 }
