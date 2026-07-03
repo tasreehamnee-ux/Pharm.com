@@ -36,11 +36,13 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
   const lastCodeRef = useRef<{ code: string; time: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState("");
+  const [cameraInfo, setCameraInfo] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
       controlsRef.current?.stop();
       controlsRef.current = null;
+      setCameraInfo(null);
       return;
     }
 
@@ -80,6 +82,15 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
         return;
       }
       controlsRef.current = controls;
+
+      const video = videoRef.current;
+      const stream = video?.srcObject instanceof MediaStream ? video.srcObject : null;
+      const track = stream?.getVideoTracks()[0];
+      if (track) {
+        console.log("Camera track:", track.label, track.getSettings());
+        setCameraInfo(track.label || "كاميرا غير معروفة");
+      }
+      video?.play().catch((playErr) => console.warn("video.play() failed:", playErr));
     };
 
     start({
@@ -140,6 +151,11 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                 <div className="h-1/3 w-4/5 rounded-lg border-2 border-primary/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
               </div>
+              {cameraInfo && (
+                <div className="pointer-events-none absolute bottom-1 right-1 rounded bg-black/60 px-2 py-0.5 text-[10px] text-white/80">
+                  {cameraInfo}
+                </div>
+              )}
             </>
           )}
         </div>
