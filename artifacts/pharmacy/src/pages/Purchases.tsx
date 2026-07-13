@@ -3,6 +3,7 @@ import {
   useListPurchases, useCreatePurchase, useListSuppliers, useListMedicines,
   getListPurchasesQueryKey, getListMedicinesQueryKey 
 } from "@workspace/api-client-react";
+import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Eye, Trash2, Search, X } from "lucide-react";
@@ -128,7 +129,7 @@ export default function Purchases() {
                     <TableCell>{new Date(purchase.createdAt).toLocaleString('ar-SA')}</TableCell>
                     <TableCell className="font-bold">{purchase.supplierName}</TableCell>
                     <TableCell>{purchase.items.length} أصناف</TableCell>
-                    <TableCell className="font-bold text-primary">${purchase.total.toFixed(2)}</TableCell>
+                    <TableCell className="font-bold text-primary">{formatCurrency(purchase.total)}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50" onClick={() => setViewingPurchase(purchase)}>
                         <Eye className="h-4 w-4" />
@@ -175,8 +176,8 @@ export default function Purchases() {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.medicineName}</TableCell>
                         <TableCell>{item.quantity}</TableCell>
-                        <TableCell>${item.unitCost.toFixed(2)}</TableCell>
-                        <TableCell className="font-bold">${item.subtotal.toFixed(2)}</TableCell>
+                        <TableCell>{formatCurrency(item.unitCost)}</TableCell>
+                        <TableCell className="font-bold">{formatCurrency(item.subtotal)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -184,7 +185,7 @@ export default function Purchases() {
               </div>
               <div className="flex justify-between items-center bg-muted/20 p-4 rounded-lg border border-border">
                 <span className="font-bold text-lg">الإجمالي</span>
-                <span className="font-bold text-2xl text-primary">${viewingPurchase.total.toFixed(2)}</span>
+                <span className="font-bold text-2xl text-primary">{formatCurrency(viewingPurchase.total)}</span>
               </div>
             </div>
           )}
@@ -284,7 +285,7 @@ export default function Purchases() {
                               dir="ltr"
                             />
                           </TableCell>
-                          <TableCell className="font-bold">${(item.qty * item.unitCost).toFixed(2)}</TableCell>
+                          <TableCell className="font-bold">{formatCurrency(item.qty * item.unitCost)}</TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500" onClick={() => removeFromCart(item.med.id)}>
                               <X className="h-4 w-4" />
@@ -299,7 +300,7 @@ export default function Purchases() {
               <div className="mt-4 flex items-center justify-between bg-muted/20 p-4 rounded-lg border border-border">
                 <div>
                   <p className="text-sm text-muted-foreground">إجمالي الفاتورة</p>
-                  <p className="text-2xl font-bold text-primary">${cartTotal.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-primary">{formatCurrency(cartTotal)}</p>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setIsAddOpen(false)}>إلغاء</Button>

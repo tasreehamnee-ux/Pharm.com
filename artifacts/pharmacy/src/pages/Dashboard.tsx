@@ -2,6 +2,7 @@ import React from "react";
 import { useGetDashboardStats } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pill, AlertTriangle, Clock, Receipt, Banknote, Users } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 export default function Dashboard() {
   const { data: stats, isLoading } = useGetDashboardStats();
@@ -19,7 +20,7 @@ export default function Dashboard() {
         <MetricCard title="مخزون منخفض" value={stats.lowStockCount} icon={AlertTriangle} color="text-amber-500" bgColor="bg-amber-50" />
         <MetricCard title="تنتهي قريباً" value={stats.expiringSoonCount} icon={Clock} color="text-red-500" bgColor="bg-red-50" />
         <MetricCard title="مبيعات اليوم" value={stats.todaySalesCount} icon={Receipt} color="text-green-500" bgColor="bg-green-50" />
-        <MetricCard title="إيرادات اليوم" value={`$${stats.todaySalesTotal.toFixed(2)}`} icon={Banknote} color="text-emerald-500" bgColor="bg-emerald-50" />
+        <MetricCard title="إيرادات اليوم" value={formatCurrency(stats.todaySalesTotal)} icon={Banknote} color="text-emerald-500" bgColor="bg-emerald-50" />
         <MetricCard title="العملاء" value={stats.totalCustomers} icon={Users} color="text-indigo-500" bgColor="bg-indigo-50" />
       </div>
 
@@ -37,7 +38,7 @@ export default function Dashboard() {
                     <p className="text-sm text-muted-foreground">{new Date(sale.createdAt).toLocaleString('ar-SA')}</p>
                   </div>
                   <div className="text-left">
-                    <p className="font-bold text-primary">${sale.total.toFixed(2)}</p>
+                    <p className="font-bold text-primary">{formatCurrency(sale.total)}</p>
                     <p className="text-xs text-muted-foreground">{sale.paymentMethod}</p>
                   </div>
                 </div>

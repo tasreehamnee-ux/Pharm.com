@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { 
   useListSales, useDeleteSale, getListSalesQueryKey, getGetDashboardStatsQueryKey 
 } from "@workspace/api-client-react";
+import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Receipt, Eye, Trash2 } from "lucide-react";
@@ -77,7 +78,7 @@ export default function Sales() {
                       </span>
                     </TableCell>
                     <TableCell>{sale.items.length} أصناف</TableCell>
-                    <TableCell className="font-bold text-primary">${sale.total.toFixed(2)}</TableCell>
+                    <TableCell className="font-bold text-primary">{formatCurrency(sale.total)}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50" onClick={() => setViewingSale(sale)}>
@@ -132,8 +133,8 @@ export default function Sales() {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.medicineName}</TableCell>
                         <TableCell>{item.quantity}</TableCell>
-                        <TableCell>${item.unitPrice.toFixed(2)}</TableCell>
-                        <TableCell className="font-bold">${item.subtotal.toFixed(2)}</TableCell>
+                        <TableCell>{formatCurrency(item.unitPrice)}</TableCell>
+                        <TableCell className="font-bold">{formatCurrency(item.subtotal)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -141,7 +142,7 @@ export default function Sales() {
               </div>
               <div className="flex justify-between items-center bg-muted/20 p-4 rounded-lg border border-border">
                 <span className="font-bold text-lg">الإجمالي</span>
-                <span className="font-bold text-2xl text-primary">${viewingSale.total.toFixed(2)}</span>
+                <span className="font-bold text-2xl text-primary">{formatCurrency(viewingSale.total)}</span>
               </div>
             </div>
           )}

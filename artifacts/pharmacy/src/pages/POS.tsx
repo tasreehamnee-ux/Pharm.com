@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Medicine } from "@workspace/api-client-react";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { listMedicines } from "@workspace/api-client-react";
+import { formatCurrency } from "@/lib/utils";
+import { InvoiceModal } from "@/components/InvoiceModal";
 
 export default function POS() {
   const [search, setSearch] = useState("");
@@ -23,6 +25,7 @@ export default function POS() {
   const [customerId, setCustomerId] = useState<string>("cash");
   const [paymentMethod, setPaymentMethod] = useState<'cash'|'card'|'insurance'>('cash');
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [completedSale, setCompletedSale] = useState<any | null>(null);
   
   const createSale = useCreateSale();
   const queryClient = useQueryClient();
@@ -92,8 +95,8 @@ export default function POS() {
         }))
       }
     }, {
-      onSuccess: () => {
-        toast({ title: "تم الدفع بنجاح", description: "تم تسجيل عملية البيع بنجاح وتحديث المخزون." });
+      onSuccess: (sale) => {
+        setCompletedSale(sale);
         setCart([]);
         setCustomerId("cash");
         setSearch("");
@@ -154,7 +157,7 @@ export default function POS() {
                     <p className="font-bold text-base truncate pr-1">{med.name}</p>
                     <p className="text-xs text-muted-foreground truncate mb-4">{med.category}</p>
                     <div className="mt-auto flex justify-between items-end">
-                      <span className="font-bold text-lg text-primary">${med.sellingPrice.toFixed(2)}</span>
+                      <span className="font-bold text-base text-primary">{formatCurrency(med.sellingPrice)}</span>
                       <span className={`text-xs px-2 py-1 rounded-md font-bold ${isOutOfStock ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                         {med.quantity} {med.unit}
                       </span>
@@ -210,9 +213,9 @@ export default function POS() {
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-bold text-base leading-none mb-1">{item.med.name}</p>
-                      <p className="text-sm text-muted-foreground">${item.med.sellingPrice.toFixed(2)} / وحدة</p>
+                      <p className="text-sm text-muted-foreground">{formatCurrency(item.med.sellingPrice)} / وحدة</p>
                     </div>
-                    <p className="font-bold text-lg">${(item.med.sellingPrice * item.qty).toFixed(2)}</p>
+                    <p className="font-bold text-lg">{formatCurrency(item.med.sellingPrice * item.qty)}</p>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center border border-border rounded-lg bg-background overflow-hidden">
@@ -237,15 +240,15 @@ export default function POS() {
           <div className="w-full space-y-2">
             <div className="flex justify-between text-muted-foreground text-sm">
               <span>المجموع الفرعي</span>
-              <span>${total.toFixed(2)}</span>
+              <span>{formatCurrency(total)}</span>
             </div>
             <div className="flex justify-between text-muted-foreground text-sm">
               <span>الضريبة (0%)</span>
-              <span>$0.00</span>
+              <span>{formatCurrency(0)}</span>
             </div>
             <div className="flex justify-between font-bold text-2xl pt-3 border-t border-border mt-3">
               <span>الإجمالي</span>
-              <span className="text-primary">${total.toFixed(2)}</span>
+              <span className="text-primary">{formatCurrency(total)}</span>
             </div>
           </div>
           
@@ -281,7 +284,7 @@ export default function POS() {
             disabled={cart.length === 0 || createSale.isPending} 
             onClick={handleCheckout}
           >
-            {createSale.isPending ? "جاري المعالجة..." : `دفع (${total.toFixed(2)}$)`}
+            {createSale.isPending ? "جاري المعالجة..." : `دفع (${formatCurrency(total)})`}
           </Button>
         </CardFooter>
       </Card>
@@ -290,6 +293,12 @@ export default function POS() {
         open={scannerOpen}
         onOpenChange={setScannerOpen}
         onDetected={handleBarcodeDetected}
+      />
+
+      <InvoiceModal
+        open={!!completedSale}
+        onClose={() => setCompletedSale(null)}
+        sale={completedSale}
       />
     </div>
   );

@@ -3,6 +3,7 @@ import {
   useListMedicines, useCreateMedicine, useUpdateMedicine, useDeleteMedicine, 
   getListMedicinesQueryKey 
 } from "@workspace/api-client-react";
+import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,7 +168,7 @@ export default function Medicines() {
                     <TableCell className="font-bold">{med.name}</TableCell>
                     <TableCell className="text-muted-foreground">{med.category}</TableCell>
                     <TableCell className="font-mono text-sm">{med.barcode}</TableCell>
-                    <TableCell className="font-medium">${med.sellingPrice.toFixed(2)}</TableCell>
+                    <TableCell className="font-medium">{formatCurrency(med.sellingPrice)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-md text-xs font-bold ${med.quantity <= med.minQuantity ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400' : 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'}`}>
                         {med.quantity} {med.unit}
