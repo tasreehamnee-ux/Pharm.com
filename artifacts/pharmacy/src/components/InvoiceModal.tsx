@@ -55,27 +55,28 @@ export function InvoiceModal({
 <meta charset="UTF-8"/>
 <title>فاتورة INV-${sale?.id?.toString().padStart(5, "0")}</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; direction: rtl; background: #fff; color: #111; font-size: 14px; }
-  .page { width: 80mm; margin: 0 auto; padding: 12px 8px; }
-  .header { text-align: center; border-bottom: 2px dashed #333; padding-bottom: 10px; margin-bottom: 10px; }
-  .header h1 { font-size: 20px; font-weight: 900; margin-bottom: 4px; }
-  .header p { font-size: 12px; color: #555; line-height: 1.6; }
-  .meta { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px; }
-  .meta div { display: flex; flex-direction: column; gap: 3px; }
-  .meta span.label { color: #666; font-size: 11px; }
-  .meta span.value { font-weight: 700; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-  th { background: #f0f0f0; font-size: 12px; padding: 5px 4px; text-align: right; }
-  td { padding: 5px 4px; font-size: 12px; border-bottom: 1px solid #eee; }
-  .total-row { border-top: 2px solid #333; margin-top: 8px; padding-top: 8px; display: flex; justify-content: space-between; }
-  .total-row .label { font-size: 16px; font-weight: 700; }
-  .total-row .amount { font-size: 18px; font-weight: 900; }
-  .footer { text-align: center; border-top: 2px dashed #333; padding-top: 10px; margin-top: 10px; font-size: 12px; color: #555; }
-  @media print {
-    body { margin: 0; }
-    .page { width: 100%; }
+  @page {
+    size: 80mm auto;
+    margin: 4mm 3mm;
   }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; direction: rtl; background: #fff; color: #111; font-size: 13px; width: 80mm; }
+  .page { width: 100%; padding: 4px 2px; }
+  .header { text-align: center; border-bottom: 2px dashed #555; padding-bottom: 8px; margin-bottom: 8px; }
+  .header h1 { font-size: 18px; font-weight: 900; margin-bottom: 3px; }
+  .header p { font-size: 11px; color: #444; line-height: 1.5; }
+  .meta { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; }
+  .meta div { display: flex; flex-direction: column; gap: 2px; }
+  .meta span.label { color: #666; font-size: 10px; }
+  .meta span.value { font-weight: 700; font-size: 11px; }
+  .divider { border-top: 1px dashed #999; margin: 5px 0; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  th { font-size: 11px; padding: 4px 3px; text-align: right; border-bottom: 1px solid #333; }
+  td { padding: 4px 3px; font-size: 11px; border-bottom: 1px dotted #ddd; }
+  .total-row { border-top: 2px solid #333; margin-top: 6px; padding-top: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .total-row .label { font-size: 15px; font-weight: 700; }
+  .total-row .amount { font-size: 17px; font-weight: 900; }
+  .footer { text-align: center; border-top: 1px dashed #999; padding-top: 7px; margin-top: 7px; font-size: 11px; color: #555; line-height: 1.6; }
 </style>
 </head>
 <body>
