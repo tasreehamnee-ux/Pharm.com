@@ -1,38 +1,56 @@
+/**
+ * BarcodeScanner — hybrid approach:
+ *  1. BarcodeDetector API (Chrome/Edge built-in, very fast for all barcode types)
+ *  2. ZXing canvas polling fallback for other browsers
+ */
 import { useEffect, useRef, useState, useCallback } from "react";
-import { BrowserMultiFormatReader } from "@zxing/browser";
-import {
-  BarcodeFormat,
-  DecodeHintType,
-  NotFoundException,
-} from "@zxing/library";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScanBarcode, CameraOff, Keyboard, RefreshCw, Camera } from "lucide-react";
 
+// ── BarcodeDetector (native Chrome/Edge API) ──────────────────────────────────
+interface NativeDetector {
+  detect(source: ImageBitmapSource | HTMLVideoElement | HTMLCanvasElement): Promise<Array<{ rawValue: string }>>;
+}
+
+const NATIVE_FORMATS = [
+  "ean_13","ean_8","upc_a","upc_e",
+  "code_128","code_39","code_93","codabar","itf",
+  "qr_code","data_matrix","pdf417","aztec",
+];
+
+function buildNativeDetector(): NativeDetector | null {
+  try {
+    const BD = (window as unknown as Record<string, unknown>)["BarcodeDetector"] as (new (opts: object) => NativeDetector) | undefined;
+    if (!BD) return null;
+    return new BD({ formats: NATIVE_FORMATS });
+  } catch {
+    return null;
+  }
+}
+
+// ── ZXing (fallback) ──────────────────────────────────────────────────────────
+async function zxingDecodeCanvas(
+  canvas: HTMLCanvasElement,
+  reader: import("@zxing/browser").BrowserMultiFormatReader
+): Promise<string | null> {
+  const { NotFoundException } = await import("@zxing/library");
+  try {
+    const result = await reader.decodeFromCanvas(canvas);
+    return result.getText();
+  } catch (e) {
+    if (e instanceof NotFoundException) return null;
+    return null;
+  }
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 interface BarcodeScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDetected: (barcode: string) => void;
 }
-
-const HINTS = new Map();
-HINTS.set(DecodeHintType.TRY_HARDER, true);
-HINTS.set(DecodeHintType.POSSIBLE_FORMATS, [
-  BarcodeFormat.EAN_13,
-  BarcodeFormat.EAN_8,
-  BarcodeFormat.UPC_A,
-  BarcodeFormat.UPC_E,
-  BarcodeFormat.CODE_128,
-  BarcodeFormat.CODE_39,
-  BarcodeFormat.CODE_93,
-  BarcodeFormat.CODABAR,
-  BarcodeFormat.ITF,
-  BarcodeFormat.QR_CODE,
-  BarcodeFormat.DATA_MATRIX,
-  BarcodeFormat.PDF_417,
-  BarcodeFormat.AZTEC,
-]);
 
 type CameraState = "idle" | "requesting" | "active" | "error";
 
@@ -40,16 +58,18 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const zxingReaderRef = useRef<import("@zxing/browser").BrowserMultiFormatReader | null>(null);
+  const nativeDetectorRef = useRef<NativeDetector | null>(null);
   const lastCodeRef = useRef<{ code: string; time: number } | null>(null);
-  const scanLineRef = useRef<HTMLDivElement>(null);
+  const engineRef = useRef<"native" | "zxing" | null>(null);
 
   const [state, setState] = useState<CameraState>("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [cameraLabel, setCameraLabel] = useState("");
   const [manualCode, setManualCode] = useState("");
   const [lastScan, setLastScan] = useState("");
+  const [engineLabel, setEngineLabel] = useState("");
 
   const stopAll = useCallback(() => {
     if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
@@ -57,41 +77,65 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
     streamRef.current = null;
   }, []);
 
-  const startDecoding = useCallback(() => {
+  const handleCode = useCallback((code: string) => {
+    const now = Date.now();
+    if (lastCodeRef.current?.code === code && now - lastCodeRef.current.time < 2000) return;
+    lastCodeRef.current = { code, time: now };
+    setLastScan(code);
+    onDetected(code);
+  }, [onDetected]);
+
+  const startPolling = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas || !readerRef.current) return;
+    if (!video || !canvas) return;
 
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) return;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
 
-    if (pollingRef.current) clearInterval(pollingRef.current);
+    // Decide engine once
+    nativeDetectorRef.current = buildNativeDetector();
+    const useNative = nativeDetectorRef.current !== null;
+    engineRef.current = useNative ? "native" : "zxing";
+    setEngineLabel(useNative ? "BarcodeDetector" : "ZXing");
+
+    const INTERVAL = useNative ? 100 : 200; // native is faster so we can poll more frequently
 
     pollingRef.current = setInterval(async () => {
       if (!video || video.readyState < 2 || video.videoWidth === 0) return;
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      try {
-        const result = await readerRef.current!.decodeFromCanvas(canvas);
-        const code = result.getText();
-        const now = Date.now();
-        if (
-          lastCodeRef.current?.code === code &&
-          now - (lastCodeRef.current?.time ?? 0) < 2000
-        ) return;
-        lastCodeRef.current = { code, time: now };
-        setLastScan(code);
-        onDetected(code);
-      } catch (err) {
-        if (!(err instanceof NotFoundException)) {
-          // unexpected error — ignore silently
+      if (useNative) {
+        // ── Native path: pass video directly (no canvas needed) ──────────────
+        try {
+          const results = await nativeDetectorRef.current!.detect(video);
+          if (results.length > 0) handleCode(results[0].rawValue);
+        } catch {
+          // silently ignore
         }
+      } else {
+        // ── ZXing path: draw frame to canvas then decode ──────────────────────
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (!zxingReaderRef.current) {
+          const { BrowserMultiFormatReader } = await import("@zxing/browser");
+          const { DecodeHintType, BarcodeFormat } = await import("@zxing/library");
+          const hints = new Map();
+          hints.set(DecodeHintType.TRY_HARDER, true);
+          hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+            BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
+            BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+            BarcodeFormat.CODE_128, BarcodeFormat.CODE_39, BarcodeFormat.CODE_93,
+            BarcodeFormat.CODABAR, BarcodeFormat.ITF,
+            BarcodeFormat.QR_CODE, BarcodeFormat.DATA_MATRIX,
+            BarcodeFormat.PDF_417, BarcodeFormat.AZTEC,
+          ]);
+          zxingReaderRef.current = new BrowserMultiFormatReader(hints);
+        }
+        const code = await zxingDecodeCanvas(canvas, zxingReaderRef.current);
+        if (code) handleCode(code);
       }
-    }, 150);
-  }, [onDetected]);
+    }, INTERVAL);
+  }, [handleCode]);
 
   const startCamera = useCallback(async () => {
     stopAll();
@@ -99,16 +143,12 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
     setErrorMsg("");
     setCameraLabel("");
     setLastScan("");
-    readerRef.current = new BrowserMultiFormatReader(HINTS);
+    setEngineLabel("");
 
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false,
       });
     } catch {
@@ -136,19 +176,18 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
     if (!video) { stopAll(); return; }
     video.srcObject = stream;
 
-    video.onloadedmetadata = () => {
+    const onReady = () => {
       video.play().catch(() => {});
       setState("active");
-      startDecoding();
+      startPolling();
     };
 
-    // fallback if onloadedmetadata already fired
     if (video.readyState >= 1) {
-      video.play().catch(() => {});
-      setState("active");
-      startDecoding();
+      onReady();
+    } else {
+      video.addEventListener("loadedmetadata", onReady, { once: true });
     }
-  }, [stopAll, startDecoding]);
+  }, [stopAll, startPolling]);
 
   useEffect(() => {
     if (!open) {
@@ -159,7 +198,6 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
       setLastScan("");
       return;
     }
-
     if (!window.isSecureContext) {
       setErrorMsg("الوصول إلى الكاميرا يتطلب HTTPS. افتح التطبيق عبر رابط آمن.");
       setState("error");
@@ -170,7 +208,6 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
       setState("error");
       return;
     }
-
     startCamera();
     return () => stopAll();
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -201,7 +238,6 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
             autoPlay
             playsInline
           />
-          {/* Hidden canvas for frame capture */}
           <canvas ref={canvasRef} className="hidden" />
 
           {state === "requesting" && (
@@ -216,30 +252,35 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
 
           {state === "active" && (
             <>
+              {/* Scanning reticle */}
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                 <div className="relative h-2/5 w-4/5">
-                  {/* dim overlay outside the box */}
                   <div className="absolute inset-0 rounded-lg border-2 border-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]" />
-                  {/* corner marks */}
                   <span className="absolute top-0 right-0 h-5 w-5 border-t-4 border-r-4 border-primary rounded-tr-md" />
                   <span className="absolute top-0 left-0 h-5 w-5 border-t-4 border-l-4 border-primary rounded-tl-md" />
                   <span className="absolute bottom-0 right-0 h-5 w-5 border-b-4 border-r-4 border-primary rounded-br-md" />
                   <span className="absolute bottom-0 left-0 h-5 w-5 border-b-4 border-l-4 border-primary rounded-bl-md" />
-                  {/* scan line */}
-                  <div
-                    ref={scanLineRef}
-                    className="absolute left-0 right-0 h-0.5 bg-primary/90"
-                    style={{ animation: "scan 2s ease-in-out infinite" }}
-                  />
+                  <div className="absolute left-0 right-0 h-0.5 bg-primary/90" style={{ animation: "scan 2s ease-in-out infinite" }} />
                 </div>
               </div>
-              {cameraLabel && (
-                <div className="pointer-events-none absolute bottom-1 right-1 rounded bg-black/60 px-2 py-0.5 text-[10px] text-white/80">
-                  {cameraLabel}
-                </div>
-              )}
+
+              {/* Engine + camera labels */}
+              <div className="pointer-events-none absolute bottom-1 right-1 flex gap-1">
+                {engineLabel && (
+                  <span className="rounded bg-primary/80 px-1.5 py-0.5 text-[10px] text-white font-medium">
+                    {engineLabel}
+                  </span>
+                )}
+                {cameraLabel && (
+                  <span className="rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white/80">
+                    {cameraLabel}
+                  </span>
+                )}
+              </div>
+
+              {/* Detected flash */}
               {lastScan && (
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-primary/90 text-white text-xs px-3 py-1 rounded-full">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-primary/90 text-white text-xs px-3 py-1 rounded-full whitespace-nowrap">
                   ✓ {lastScan}
                 </div>
               )}
@@ -268,7 +309,7 @@ export function BarcodeScanner({ open, onOpenChange, onDetected }: BarcodeScanne
           </p>
         )}
 
-        {/* Manual / USB scanner entry */}
+        {/* Manual / USB scanner fallback */}
         <div className="border-t border-border pt-3">
           <label className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
             <Keyboard className="h-4 w-4" />
