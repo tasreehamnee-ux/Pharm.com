@@ -34,7 +34,7 @@ export default function Dashboard() {
               {stats.recentSales?.slice(0, 5).map(sale => (
                 <div key={sale.id} className="flex justify-between items-center border-b border-border pb-4 last:border-0 last:pb-0">
                   <div>
-                    <p className="font-medium">طلب #{sale.id}</p>
+                    <p className="font-medium">طلب {sale.id}</p>
                     <p className="text-sm text-muted-foreground">{new Date(sale.createdAt).toLocaleString('ar-SA')}</p>
                   </div>
                   <div className="text-left">
