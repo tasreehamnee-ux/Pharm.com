@@ -11,6 +11,7 @@ import Sales from "@/pages/Sales";
 import Purchases from "@/pages/Purchases";
 import Customers from "@/pages/Customers";
 import Suppliers from "@/pages/Suppliers";
+import Settings from "@/pages/Settings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ function Router() {
         <Route path="/purchases" component={Purchases} />
         <Route path="/customers" component={Customers} />
         <Route path="/suppliers" component={Suppliers} />
+        <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

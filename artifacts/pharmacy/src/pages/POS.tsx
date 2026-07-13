@@ -15,6 +15,7 @@ import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { listMedicines } from "@workspace/api-client-react";
 import { formatCurrency } from "@/lib/utils";
 import { InvoiceModal } from "@/components/InvoiceModal";
+import { useGetSettings } from "@workspace/api-client-react";
 
 export default function POS() {
   const [search, setSearch] = useState("");
@@ -27,6 +28,7 @@ export default function POS() {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [completedSale, setCompletedSale] = useState<any | null>(null);
   
+  const { data: settings } = useGetSettings();
   const createSale = useCreateSale();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -299,6 +301,10 @@ export default function POS() {
         open={!!completedSale}
         onClose={() => setCompletedSale(null)}
         sale={completedSale}
+        pharmacyName={settings?.pharmacyName || "الصيدلية"}
+        pharmacyPhone={settings?.phone || ""}
+        pharmacyAddress={settings?.address || ""}
+        footerNote={settings?.footerNote || ""}
       />
     </div>
   );

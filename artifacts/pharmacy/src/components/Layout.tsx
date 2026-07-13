@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Pill, Activity, Receipt, ShoppingCart, Users, Truck } from "lucide-react";
+import { Pill, Activity, Receipt, ShoppingCart, Users, Truck, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import React from "react";
 
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/purchases", label: "المشتريات", icon: Truck },
   { href: "/customers", label: "العملاء", icon: Users },
   { href: "/suppliers", label: "الموردين", icon: Users },
+  { href: "/settings", label: "إعدادات الصيدلية", icon: Settings },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
