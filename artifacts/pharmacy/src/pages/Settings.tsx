@@ -21,7 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Building2, Phone, MapPin, Hash, FileText, Save } from "lucide-react";
+import { Building2, Phone, MapPin, FileText, Save } from "lucide-react";
 
 const settingsSchema = z.object({
   pharmacyName: z.string().min(1, "اسم الصيدلية مطلوب"),
@@ -176,10 +176,7 @@ export default function Settings() {
                 name="taxNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      <Hash className="h-4 w-4 text-muted-foreground" />
-                      الرقم الضريبي
-                    </FormLabel>
+                    <FormLabel>الرقم الضريبي</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="اختياري"
