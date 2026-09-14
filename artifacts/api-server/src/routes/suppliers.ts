@@ -22,10 +22,12 @@ const mockSuppliers: Array<{
   address?: string | null;
   createdAt: Date;
 }> = [
-  { id: 1, name: "شركة سبيماكو الدوائية", phone: "0112223344", address: "الرياض", createdAt: new Date() },
-  { id: 2, name: "شركة الموارد الطبية", phone: "0125556677", address: "جدة", createdAt: new Date() },
+  { id: 1, name: "شركة أدوية سامراء (SDI)", phone: "07701112233", address: "بغداد - شارع السعدون", createdAt: new Date() },
+  { id: 2, name: "شركة الفيحاء للمستلزمات الطبية", phone: "07802223344", address: "البصرة - العشار", createdAt: new Date() },
+  { id: 3, name: "مكتب أربيل للأدوية", phone: "07503334455", address: "أربيل - شارع 60", createdAt: new Date() },
 ];
-let nextSupplierId = 3;
+let nextSupplierId = 4;
+
 
 const isDbAvailable = () => Boolean(process.env.DATABASE_URL);
 

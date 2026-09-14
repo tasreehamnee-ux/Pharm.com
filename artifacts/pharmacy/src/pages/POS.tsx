@@ -6,7 +6,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ShoppingCart, Trash2, Plus, Minus, CreditCard, Banknote, ShieldPlus, ScanBarcode } from "lucide-react";
+import { Search, ShoppingCart, Trash2, Plus, Minus, CreditCard, Banknote, ShieldPlus, ScanBarcode, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,6 +25,7 @@ export default function POS() {
   const [cart, setCart] = useState<{med: Medicine, qty: number}[]>([]);
   const [customerId, setCustomerId] = useState<string>("cash");
   const [paymentMethod, setPaymentMethod] = useState<'cash'|'card'|'insurance'>('cash');
+  const [paidAmount, setPaidAmount] = useState<string>("");
   const [scannerOpen, setScannerOpen] = useState(false);
   const [completedSale, setCompletedSale] = useState<any | null>(null);
   
@@ -85,6 +86,9 @@ export default function POS() {
   };
 
   const total = cart.reduce((acc, item) => acc + (item.med.sellingPrice * item.qty), 0);
+  const numericPaid = parseFloat(paidAmount) || 0;
+  const change = Math.max(0, numericPaid - total);
+  const remainingNeeded = Math.max(0, total - numericPaid);
 
   const handleCheckout = () => {
     createSale.mutate({
@@ -98,10 +102,15 @@ export default function POS() {
       }
     }, {
       onSuccess: (sale) => {
-        setCompletedSale(sale);
+        setCompletedSale({
+          ...sale,
+          paidAmount: numericPaid > 0 ? numericPaid : total,
+          changeAmount: numericPaid > total ? change : 0,
+        });
         setCart([]);
         setCustomerId("cash");
         setSearch("");
+        setPaidAmount("");
         queryClient.invalidateQueries({ queryKey: getListMedicinesQueryKey() });
         queryClient.invalidateQueries({ queryKey: getListSalesQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() });
@@ -179,7 +188,7 @@ export default function POS() {
       </div>
 
       {/* Right pane: Cart */}
-      <Card className="w-[400px] flex flex-col flex-shrink-0 border-border shadow-md">
+      <Card className="w-[430px] flex flex-col flex-shrink-0 border-border shadow-md">
         <CardHeader className="border-b border-border py-4 bg-primary text-primary-foreground">
           <CardTitle className="flex items-center gap-2 text-lg">
             <ShoppingCart className="h-5 w-5" /> الفاتورة الحالية
@@ -238,7 +247,8 @@ export default function POS() {
             </div>
           )}
         </CardContent>
-        <CardFooter className="border-t border-border flex-col gap-4 p-5 bg-card shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)]">
+
+        <CardFooter className="border-t border-border flex-col gap-4 p-4 bg-card shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)] overflow-y-auto max-h-[50vh]">
           <div className="w-full space-y-2">
             <div className="flex justify-between text-muted-foreground text-sm">
               <span>المجموع الفرعي</span>
@@ -248,41 +258,100 @@ export default function POS() {
               <span>الضريبة (0%)</span>
               <span>{formatCurrency(0)}</span>
             </div>
-            <div className="flex justify-between font-bold text-2xl pt-3 border-t border-border mt-3">
+            <div className="flex justify-between font-bold text-xl pt-2 border-t border-border mt-2">
               <span>الإجمالي</span>
-              <span className="text-primary">{formatCurrency(total)}</span>
+              <span className="text-primary font-black">{formatCurrency(total)}</span>
             </div>
           </div>
+
+          {/* Paid & Change Calculator Section */}
+          <div className="w-full bg-muted/30 border border-border rounded-xl p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-xs font-bold flex items-center gap-1">
+                <Calculator className="h-4 w-4 text-primary" /> المبلغ المدفوع:
+              </label>
+              <Input
+                type="number"
+                placeholder={total ? total.toString() : "0"}
+                value={paidAmount}
+                onChange={(e) => setPaidAmount(e.target.value)}
+                className="w-36 h-9 text-left font-bold text-base dir-ltr"
+              />
+            </div>
+
+            {/* Quick cash buttons */}
+            <div className="flex gap-1 overflow-x-auto pb-1 text-xs">
+              <button 
+                type="button" 
+                className="px-2 py-1 bg-background border border-border rounded hover:bg-muted font-bold"
+                onClick={() => setPaidAmount(total.toString())}
+              >
+                بالظبط
+              </button>
+
+              {[5000, 10000, 25000, 50000].map((amt) => (
+                <button
+                  key={amt}
+                  type="button"
+                  className="px-2 py-1 bg-background border border-border rounded hover:bg-muted font-bold text-xs"
+                  onClick={() => setPaidAmount(amt.toString())}
+                >
+                  {amt.toLocaleString('ar-IQ')}
+                </button>
+              ))}
+            </div>
+
+            {/* Change & Remaining Display */}
+            {numericPaid > 0 && (
+              <div className="pt-2 border-t border-border/60 flex justify-between items-center">
+                {numericPaid >= total ? (
+                  <>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">الباقي للعميل:</span>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded">
+                      {formatCurrency(change)}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400">المتبقي للدفع:</span>
+                    <span className="text-base font-bold text-amber-600 dark:text-amber-400">
+                      {formatCurrency(remainingNeeded)}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
           
-          <div className="w-full grid grid-cols-3 gap-3">
+          <div className="w-full grid grid-cols-3 gap-2">
             <Button 
               variant={paymentMethod === 'cash' ? 'default' : 'outline'} 
-              className="flex-col h-16 gap-1" 
+              className="flex-col h-14 gap-1" 
               onClick={() => setPaymentMethod('cash')}
             >
-              <Banknote className="h-5 w-5" />
+              <Banknote className="h-4 w-4" />
               <span className="text-xs">نقدي</span>
             </Button>
             <Button 
               variant={paymentMethod === 'card' ? 'default' : 'outline'} 
-              className="flex-col h-16 gap-1"
+              className="flex-col h-14 gap-1"
               onClick={() => setPaymentMethod('card')}
             >
-              <CreditCard className="h-5 w-5" />
+              <CreditCard className="h-4 w-4" />
               <span className="text-xs">بطاقة</span>
             </Button>
             <Button 
               variant={paymentMethod === 'insurance' ? 'default' : 'outline'} 
-              className="flex-col h-16 gap-1"
+              className="flex-col h-14 gap-1"
               onClick={() => setPaymentMethod('insurance')}
             >
-              <ShieldPlus className="h-5 w-5" />
+              <ShieldPlus className="h-4 w-4" />
               <span className="text-xs">تأمين</span>
             </Button>
           </div>
 
           <Button 
-            className="w-full h-14 text-lg shadow-md hover:shadow-lg transition-all" 
+            className="w-full h-12 text-lg shadow-md hover:shadow-lg transition-all" 
             disabled={cart.length === 0 || createSale.isPending} 
             onClick={handleCheckout}
           >

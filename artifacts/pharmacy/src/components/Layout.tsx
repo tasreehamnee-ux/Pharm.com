@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Pill, Activity, Receipt, ShoppingCart, Users, Truck, Settings } from "lucide-react";
+import { Pill, Activity, Receipt, ShoppingCart, Users, Truck, Settings, Code2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import React from "react";
 
@@ -53,7 +53,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-border mt-auto">
+        <div className="p-4 border-t border-border mt-auto space-y-3">
           <div className="flex items-center gap-3 px-2">
             <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center font-bold text-muted-foreground border border-border">
               ص
@@ -63,15 +63,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <p className="text-xs text-muted-foreground">مدير النظام</p>
             </div>
           </div>
+
+          <div className="bg-primary/5 border border-primary/10 rounded-lg p-2.5 text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5 font-medium">
+            <Code2 className="h-3.5 w-3.5 text-primary" />
+            <span>تصميم وبرمجة: <strong className="text-foreground">م. م رنا علي ذويب</strong></span>
+          </div>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-muted/30">
-        <header className="h-16 border-b border-border bg-card/80 backdrop-blur-sm flex items-center px-8 flex-shrink-0 sticky top-0 z-10">
+        <header className="h-16 border-b border-border bg-card/80 backdrop-blur-sm flex items-center justify-between px-8 flex-shrink-0 sticky top-0 z-10">
           <h2 className="text-lg font-semibold tracking-tight">
             {NAV_ITEMS.find(item => item.href === location)?.label || "نظام الصيدلية الذكي"}
           </h2>
+          <div className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-xs font-bold">
+            <Code2 className="h-4 w-4" />
+            <span>تصميم وبرمجة: م. م رنا علي ذويب</span>
+          </div>
         </header>
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-7xl mx-auto h-full">

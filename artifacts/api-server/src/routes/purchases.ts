@@ -30,7 +30,7 @@ const mockPurchases: Array<{
   {
     id: 1,
     supplierId: 1,
-    supplierName: "شركة سبيماكو الدوائية",
+    supplierName: "شركة أدوية سامراء (SDI)",
     total: 240.00,
     createdAt: new Date(),
     items: [
@@ -188,7 +188,7 @@ router.post("/purchases", async (req, res): Promise<void> => {
   const newPurchase = {
     id: nextPurchaseId++,
     supplierId,
-    supplierName: supplierId === 1 ? "شركة سبيماكو الدوائية" : "مورد آخر",
+    supplierName: supplierId === 1 ? "شركة أدوية سامراء (SDI)" : "شركة الأدوية العراقية",
     total,
     createdAt: new Date(),
     items: createdItems,

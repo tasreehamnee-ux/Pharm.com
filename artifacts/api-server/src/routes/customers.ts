@@ -22,10 +22,12 @@ const mockCustomers: Array<{
   address?: string | null;
   createdAt: Date;
 }> = [
-  { id: 1, name: "صفاء هادي", phone: "0554333445", address: "الرياض", createdAt: new Date() },
-  { id: 2, name: "أحمد السالم", phone: "0501234567", address: "جدة", createdAt: new Date() },
+  { id: 1, name: "صفاء هادي", phone: "07701234567", address: "بغداد - المنصور", createdAt: new Date() },
+  { id: 2, name: "أحمد الكرخي", phone: "07809876543", address: "بغداد - الكرادة", createdAt: new Date() },
+  { id: 3, name: "علي الحسيني", phone: "07711223344", address: "البصرة - الجزاير", createdAt: new Date() },
 ];
-let nextCustomerId = 3;
+let nextCustomerId = 4;
+
 
 const isDbAvailable = () => Boolean(process.env.DATABASE_URL);
 

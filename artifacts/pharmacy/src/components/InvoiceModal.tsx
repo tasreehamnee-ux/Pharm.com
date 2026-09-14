@@ -17,6 +17,8 @@ interface InvoiceData {
   customerName?: string | null;
   paymentMethod: string;
   total: number;
+  paidAmount?: number;
+  changeAmount?: number;
   items: InvoiceItem[];
 }
 
@@ -76,6 +78,7 @@ export function InvoiceModal({
   .total-row { border-top: 2px solid #333; margin-top: 6px; padding-top: 6px; display: flex; justify-content: space-between; align-items: center; }
   .total-row .label { font-size: 15px; font-weight: 700; }
   .total-row .amount { font-size: 17px; font-weight: 900; }
+  .pay-row { display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px; }
   .footer { text-align: center; border-top: 1px dashed #999; padding-top: 7px; margin-top: 7px; font-size: 11px; color: #555; line-height: 1.6; }
 </style>
 </head>
@@ -133,8 +136,15 @@ export function InvoiceModal({
     <span class="label">الإجمالي</span>
     <span class="amount">${formatCurrency(sale?.total || 0)}</span>
   </div>
+  ${
+    sale?.paidAmount && sale.paidAmount > 0
+      ? `<div class="pay-row"><span>المبلغ المدفوع:</span><strong>${formatCurrency(sale.paidAmount)}</strong></div>
+         <div class="pay-row"><span>الباقي للعميل:</span><strong>${formatCurrency(sale.changeAmount || 0)}</strong></div>`
+      : ""
+  }
   ${footerNote ? `<div class="footer"><p>${footerNote}</p></div>` : ""}
-  <div class="footer"><p>شكراً لزيارتكم</p></div>
+  <div class="footer"><p>شكراً لزيارتكم 💊</p><p style="font-size: 10px; color: #666; margin-top: 3px;">تصميم وبرمجة: م. م رنا علي ذويب</p></div>
+
 </div>
 <script>window.onload = () => { window.print(); window.onafterprint = () => window.close(); }</script>
 </body>
@@ -194,15 +204,30 @@ export function InvoiceModal({
             </table>
           </div>
 
-          <div className="mx-6 mb-4 bg-primary/5 border border-primary/20 rounded-xl p-4 flex justify-between items-center">
+          <div className="mx-6 mb-2 bg-primary/5 border border-primary/20 rounded-xl p-4 flex justify-between items-center">
             <span className="text-lg font-bold">الإجمالي</span>
             <span className="text-2xl font-black text-primary">{formatCurrency(sale.total)}</span>
           </div>
 
+          {sale.paidAmount && sale.paidAmount > 0 ? (
+            <div className="mx-6 mb-4 bg-muted/40 rounded-xl p-3 text-sm space-y-1">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">المبلغ المدفوع:</span>
+                <span className="font-bold">{formatCurrency(sale.paidAmount)}</span>
+              </div>
+              <div className="flex justify-between text-emerald-600 font-bold">
+                <span>الباقي للعميل:</span>
+                <span className="text-base">{formatCurrency(sale.changeAmount || 0)}</span>
+              </div>
+            </div>
+          ) : null}
+
           {footerNote && (
             <p className="text-center text-sm text-muted-foreground pb-3 px-6">{footerNote}</p>
           )}
-          <p className="text-center text-sm text-muted-foreground pb-4">شكراً لزيارتكم 💊</p>
+          <p className="text-center text-sm text-muted-foreground pb-1">شكراً لزيارتكم 💊</p>
+          <p className="text-center text-xs font-medium text-muted-foreground/80 pb-4">تصميم وبرمجة: م. م رنا علي ذويب</p>
+
         </div>
 
         <div className="border-t border-border px-6 py-4 flex gap-3 justify-end bg-muted/10">
