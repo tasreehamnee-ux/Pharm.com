@@ -101,10 +101,6 @@ export function InvoiceModal({
   </div>
   <div class="meta">
     <div>
-      <span class="label">العميل</span>
-      <span class="value">${sale?.customerName || "عميل نقدي"}</span>
-    </div>
-    <div>
       <span class="label">طريقة الدفع</span>
       <span class="value">${paymentLabel(sale?.paymentMethod || "")}</span>
     </div>
@@ -171,10 +167,6 @@ export function InvoiceModal({
           </div>
 
           <div className="px-6 py-3 border-b border-border bg-muted/20 flex justify-between text-sm">
-            <div>
-              <span className="text-muted-foreground">العميل: </span>
-              <span className="font-bold">{sale.customerName || "عميل نقدي"}</span>
-            </div>
             <div>
               <span className="text-muted-foreground">طريقة الدفع: </span>
               <span className="font-bold">{paymentLabel(sale.paymentMethod)}</span>
