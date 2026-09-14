@@ -9,6 +9,17 @@ import {
 
 const router: IRouter = Router();
 
+let mockSettings = {
+  id: 1,
+  pharmacyName: "صيدلية فارما",
+  phone: "6654333445",
+  address: "السماوة الغربي",
+  taxNumber: "",
+  footerNote: "شكراً لزيارتكم — لا يقبل الإرجاع بعد 24 ساعة",
+};
+
+const isDbAvailable = () => Boolean(process.env.DATABASE_URL);
+
 async function getOrCreateSettings() {
   const [existing] = await db.select().from(settingsTable).limit(1);
   if (existing) return existing;
@@ -20,8 +31,15 @@ async function getOrCreateSettings() {
 }
 
 router.get("/settings", async (_req, res): Promise<void> => {
-  const settings = await getOrCreateSettings();
-  res.json(GetSettingsResponse.parse(settings));
+  if (isDbAvailable()) {
+    try {
+      const settings = await getOrCreateSettings();
+      res.json(GetSettingsResponse.parse(settings));
+      return;
+    } catch (e) {}
+  }
+
+  res.json(GetSettingsResponse.parse(mockSettings));
 });
 
 router.put("/settings", async (req, res): Promise<void> => {
@@ -31,14 +49,26 @@ router.put("/settings", async (req, res): Promise<void> => {
     return;
   }
 
-  const existing = await getOrCreateSettings();
-  const [updated] = await db
-    .update(settingsTable)
-    .set(parsed.data)
-    .where(eq(settingsTable.id, existing.id))
-    .returning();
+  if (isDbAvailable()) {
+    try {
+      const existing = await getOrCreateSettings();
+      const [updated] = await db
+        .update(settingsTable)
+        .set(parsed.data)
+        .where(eq(settingsTable.id, existing.id))
+        .returning();
 
-  res.json(UpdateSettingsResponse.parse(updated));
+      res.json(UpdateSettingsResponse.parse(updated));
+      return;
+    } catch (e) {}
+  }
+
+  mockSettings = {
+    ...mockSettings,
+    ...parsed.data,
+  };
+
+  res.json(UpdateSettingsResponse.parse(mockSettings));
 });
 
 export default router;

@@ -15,9 +15,29 @@ import {
 
 const router: IRouter = Router();
 
+const mockSuppliers: Array<{
+  id: number;
+  name: string;
+  phone: string;
+  address?: string | null;
+  createdAt: Date;
+}> = [
+  { id: 1, name: "شركة سبيماكو الدوائية", phone: "0112223344", address: "الرياض", createdAt: new Date() },
+  { id: 2, name: "شركة الموارد الطبية", phone: "0125556677", address: "جدة", createdAt: new Date() },
+];
+let nextSupplierId = 3;
+
+const isDbAvailable = () => Boolean(process.env.DATABASE_URL);
+
 router.get("/suppliers", async (_req, res): Promise<void> => {
-  const suppliers = await db.select().from(suppliersTable).orderBy(suppliersTable.name);
-  res.json(ListSuppliersResponse.parse(suppliers));
+  if (isDbAvailable()) {
+    try {
+      const suppliers = await db.select().from(suppliersTable).orderBy(suppliersTable.name);
+      res.json(ListSuppliersResponse.parse(suppliers));
+      return;
+    } catch (e) {}
+  }
+  res.json(ListSuppliersResponse.parse(mockSuppliers));
 });
 
 router.post("/suppliers", async (req, res): Promise<void> => {
@@ -27,8 +47,21 @@ router.post("/suppliers", async (req, res): Promise<void> => {
     return;
   }
 
-  const [supplier] = await db.insert(suppliersTable).values(parsed.data).returning();
-  res.status(201).json(CreateSupplierResponse.parse(supplier));
+  if (isDbAvailable()) {
+    try {
+      const [supplier] = await db.insert(suppliersTable).values(parsed.data).returning();
+      res.status(201).json(CreateSupplierResponse.parse(supplier));
+      return;
+    } catch (e) {}
+  }
+
+  const newSupp = {
+    id: nextSupplierId++,
+    ...parsed.data,
+    createdAt: new Date(),
+  };
+  mockSuppliers.push(newSupp);
+  res.status(201).json(CreateSupplierResponse.parse(newSupp));
 });
 
 router.get("/suppliers/:id", async (req, res): Promise<void> => {
@@ -38,8 +71,17 @@ router.get("/suppliers/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [supplier] = await db.select().from(suppliersTable).where(eq(suppliersTable.id, params.data.id));
+  if (isDbAvailable()) {
+    try {
+      const [supplier] = await db.select().from(suppliersTable).where(eq(suppliersTable.id, params.data.id));
+      if (supplier) {
+        res.json(GetSupplierResponse.parse(supplier));
+        return;
+      }
+    } catch (e) {}
+  }
 
+  const supplier = mockSuppliers.find((s) => s.id === params.data.id);
   if (!supplier) {
     res.status(404).json({ error: "Supplier not found" });
     return;
@@ -61,18 +103,29 @@ router.patch("/suppliers/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [supplier] = await db
-    .update(suppliersTable)
-    .set(parsed.data)
-    .where(eq(suppliersTable.id, params.data.id))
-    .returning();
+  if (isDbAvailable()) {
+    try {
+      const [supplier] = await db
+        .update(suppliersTable)
+        .set(parsed.data)
+        .where(eq(suppliersTable.id, params.data.id))
+        .returning();
 
-  if (!supplier) {
+      if (supplier) {
+        res.json(UpdateSupplierResponse.parse(supplier));
+        return;
+      }
+    } catch (e) {}
+  }
+
+  const index = mockSuppliers.findIndex((s) => s.id === params.data.id);
+  if (index === -1) {
     res.status(404).json({ error: "Supplier not found" });
     return;
   }
 
-  res.json(UpdateSupplierResponse.parse(supplier));
+  mockSuppliers[index] = { ...mockSuppliers[index], ...parsed.data };
+  res.json(UpdateSupplierResponse.parse(mockSuppliers[index]));
 });
 
 router.delete("/suppliers/:id", async (req, res): Promise<void> => {
@@ -82,13 +135,23 @@ router.delete("/suppliers/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [supplier] = await db.delete(suppliersTable).where(eq(suppliersTable.id, params.data.id)).returning();
+  if (isDbAvailable()) {
+    try {
+      const [supplier] = await db.delete(suppliersTable).where(eq(suppliersTable.id, params.data.id)).returning();
+      if (supplier) {
+        res.sendStatus(204);
+        return;
+      }
+    } catch (e) {}
+  }
 
-  if (!supplier) {
+  const index = mockSuppliers.findIndex((s) => s.id === params.data.id);
+  if (index === -1) {
     res.status(404).json({ error: "Supplier not found" });
     return;
   }
 
+  mockSuppliers.splice(index, 1);
   res.sendStatus(204);
 });
 

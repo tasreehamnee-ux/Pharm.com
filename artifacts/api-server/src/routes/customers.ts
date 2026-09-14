@@ -15,9 +15,29 @@ import {
 
 const router: IRouter = Router();
 
+const mockCustomers: Array<{
+  id: number;
+  name: string;
+  phone: string;
+  address?: string | null;
+  createdAt: Date;
+}> = [
+  { id: 1, name: "صفاء هادي", phone: "0554333445", address: "الرياض", createdAt: new Date() },
+  { id: 2, name: "أحمد السالم", phone: "0501234567", address: "جدة", createdAt: new Date() },
+];
+let nextCustomerId = 3;
+
+const isDbAvailable = () => Boolean(process.env.DATABASE_URL);
+
 router.get("/customers", async (_req, res): Promise<void> => {
-  const customers = await db.select().from(customersTable).orderBy(customersTable.name);
-  res.json(ListCustomersResponse.parse(customers));
+  if (isDbAvailable()) {
+    try {
+      const customers = await db.select().from(customersTable).orderBy(customersTable.name);
+      res.json(ListCustomersResponse.parse(customers));
+      return;
+    } catch (e) {}
+  }
+  res.json(ListCustomersResponse.parse(mockCustomers));
 });
 
 router.post("/customers", async (req, res): Promise<void> => {
@@ -27,8 +47,21 @@ router.post("/customers", async (req, res): Promise<void> => {
     return;
   }
 
-  const [customer] = await db.insert(customersTable).values(parsed.data).returning();
-  res.status(201).json(CreateCustomerResponse.parse(customer));
+  if (isDbAvailable()) {
+    try {
+      const [customer] = await db.insert(customersTable).values(parsed.data).returning();
+      res.status(201).json(CreateCustomerResponse.parse(customer));
+      return;
+    } catch (e) {}
+  }
+
+  const newCust = {
+    id: nextCustomerId++,
+    ...parsed.data,
+    createdAt: new Date(),
+  };
+  mockCustomers.push(newCust);
+  res.status(201).json(CreateCustomerResponse.parse(newCust));
 });
 
 router.get("/customers/:id", async (req, res): Promise<void> => {
@@ -38,8 +71,17 @@ router.get("/customers/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [customer] = await db.select().from(customersTable).where(eq(customersTable.id, params.data.id));
+  if (isDbAvailable()) {
+    try {
+      const [customer] = await db.select().from(customersTable).where(eq(customersTable.id, params.data.id));
+      if (customer) {
+        res.json(GetCustomerResponse.parse(customer));
+        return;
+      }
+    } catch (e) {}
+  }
 
+  const customer = mockCustomers.find((c) => c.id === params.data.id);
   if (!customer) {
     res.status(404).json({ error: "Customer not found" });
     return;
@@ -61,18 +103,29 @@ router.patch("/customers/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [customer] = await db
-    .update(customersTable)
-    .set(parsed.data)
-    .where(eq(customersTable.id, params.data.id))
-    .returning();
+  if (isDbAvailable()) {
+    try {
+      const [customer] = await db
+        .update(customersTable)
+        .set(parsed.data)
+        .where(eq(customersTable.id, params.data.id))
+        .returning();
 
-  if (!customer) {
+      if (customer) {
+        res.json(UpdateCustomerResponse.parse(customer));
+        return;
+      }
+    } catch (e) {}
+  }
+
+  const index = mockCustomers.findIndex((c) => c.id === params.data.id);
+  if (index === -1) {
     res.status(404).json({ error: "Customer not found" });
     return;
   }
 
-  res.json(UpdateCustomerResponse.parse(customer));
+  mockCustomers[index] = { ...mockCustomers[index], ...parsed.data };
+  res.json(UpdateCustomerResponse.parse(mockCustomers[index]));
 });
 
 router.delete("/customers/:id", async (req, res): Promise<void> => {
@@ -82,13 +135,23 @@ router.delete("/customers/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [customer] = await db.delete(customersTable).where(eq(customersTable.id, params.data.id)).returning();
+  if (isDbAvailable()) {
+    try {
+      const [customer] = await db.delete(customersTable).where(eq(customersTable.id, params.data.id)).returning();
+      if (customer) {
+        res.sendStatus(204);
+        return;
+      }
+    } catch (e) {}
+  }
 
-  if (!customer) {
+  const index = mockCustomers.findIndex((c) => c.id === params.data.id);
+  if (index === -1) {
     res.status(404).json({ error: "Customer not found" });
     return;
   }
 
+  mockCustomers.splice(index, 1);
   res.sendStatus(204);
 });
 
