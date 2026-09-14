@@ -1,6 +1,7 @@
 {
   "framework": "vite",
   "buildCommand": "pnpm run build",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "outputDirectory": "artifacts/pharmacy/dist/public",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
