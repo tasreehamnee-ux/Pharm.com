@@ -33,7 +33,7 @@ const mockSales: Array<{
   {
     id: 1,
     customerId: 1,
-    customerName: "صفاء هادي",
+    customerName: "حسين علي",
     paymentMethod: "cash",
     total: 37.00,
     createdAt: new Date(),
@@ -203,7 +203,7 @@ router.post("/sales", async (req, res): Promise<void> => {
   const newSale = {
     id: nextSaleId++,
     customerId: customerId ?? null,
-    customerName: customerId === 1 ? "صفاء هادي" : "عميل عام",
+    customerName: customerId === 1 ? "حسين علي" : "عميل عام",
     paymentMethod,
     total,
     createdAt: new Date(),

@@ -97,7 +97,7 @@ router.get("/dashboard/stats", async (_req, res): Promise<void> => {
       {
         id: 101,
         customerId: 1,
-        customerName: "صفاء هادي",
+        customerName: "حسين علي",
         paymentMethod: "cash",
         total: 50.50,
         createdAt: new Date(),
