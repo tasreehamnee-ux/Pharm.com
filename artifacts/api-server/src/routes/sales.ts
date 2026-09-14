@@ -187,7 +187,7 @@ router.post("/sales", async (req, res): Promise<void> => {
       id: nextSaleItemId++,
       saleId: nextSaleId,
       medicineId: item.medicineId,
-      medicineName: `دواء #${item.medicineId}`,
+      medicineName: `دواء ${item.medicineId}`,
       quantity: item.quantity,
       unitPrice,
       subtotal,

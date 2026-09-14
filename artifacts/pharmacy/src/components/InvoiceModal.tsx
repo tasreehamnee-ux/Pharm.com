@@ -143,7 +143,7 @@ export function InvoiceModal({
       : ""
   }
   ${footerNote ? `<div class="footer"><p>${footerNote}</p></div>` : ""}
-  <div class="footer"><p>شكراً لزيارتكم 💊</p><p style="font-size: 10px; color: #666; margin-top: 3px;">تصميم وبرمجة: م. م رنا علي ذويب</p></div>
+  <div class="footer"><p>شكراً لزيارتكم 💊</p></div>
 
 </div>
 <script>window.onload = () => { window.print(); window.onafterprint = () => window.close(); }</script>
@@ -225,8 +225,7 @@ export function InvoiceModal({
           {footerNote && (
             <p className="text-center text-sm text-muted-foreground pb-3 px-6">{footerNote}</p>
           )}
-          <p className="text-center text-sm text-muted-foreground pb-1">شكراً لزيارتكم 💊</p>
-          <p className="text-center text-xs font-medium text-muted-foreground/80 pb-4">تصميم وبرمجة: م. م رنا علي ذويب</p>
+          <p className="text-center text-sm text-muted-foreground pb-4">شكراً لزيارتكم 💊</p>
 
         </div>
 

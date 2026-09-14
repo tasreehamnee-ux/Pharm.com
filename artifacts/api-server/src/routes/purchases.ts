@@ -178,7 +178,7 @@ router.post("/purchases", async (req, res): Promise<void> => {
       id: nextPurchaseItemId++,
       purchaseId: nextPurchaseId,
       medicineId: item.medicineId,
-      medicineName: `دواء #${item.medicineId}`,
+      medicineName: `دواء ${item.medicineId}`,
       quantity: item.quantity,
       unitCost: item.unitCost,
       subtotal,
