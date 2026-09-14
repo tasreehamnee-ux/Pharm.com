@@ -1,5 +1,8 @@
 {
   "framework": "vite",
   "buildCommand": "pnpm run build",
-  "outputDirectory": "artifacts/pharmacy/dist/public"
+  "outputDirectory": "artifacts/pharmacy/dist/public",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
