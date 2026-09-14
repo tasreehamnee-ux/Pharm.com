@@ -16,7 +16,7 @@ import {
 const router: IRouter = Router();
 
 // In-memory fallback dataset so the app works 100% out of the box
-const mockMedicines: Array<{
+export const mockMedicines: Array<{
   id: number;
   name: string;
   category: string;

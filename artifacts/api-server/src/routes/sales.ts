@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, desc, sql, inArray } from "drizzle-orm";
 import { db, salesTable, saleItemsTable, medicinesTable, customersTable } from "@workspace/db";
+import { mockMedicines } from "./medicines";
 import {
   CreateSaleBody,
   GetSaleParams,
@@ -180,14 +181,19 @@ router.post("/sales", async (req, res): Promise<void> => {
   // Fallback in-memory sale creation
   let total = 0;
   const createdItems = items.map((item) => {
-    const unitPrice = 20.00;
+    const med = mockMedicines.find((m) => m.id === item.medicineId);
+    const medicineName = med ? med.name : `دواء ${item.medicineId}`;
+    const unitPrice = med ? Number(med.sellingPrice) : 20.00;
     const subtotal = unitPrice * item.quantity;
     total += subtotal;
+    if (med) {
+      med.quantity = Math.max(0, med.quantity - item.quantity);
+    }
     return {
       id: nextSaleItemId++,
       saleId: nextSaleId,
       medicineId: item.medicineId,
-      medicineName: `دواء ${item.medicineId}`,
+      medicineName,
       quantity: item.quantity,
       unitPrice,
       subtotal,

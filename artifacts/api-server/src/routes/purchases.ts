@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, desc, sql, inArray } from "drizzle-orm";
 import { db, purchasesTable, purchaseItemsTable, medicinesTable, suppliersTable } from "@workspace/db";
+import { mockMedicines } from "./medicines";
 import {
   CreatePurchaseBody,
   GetPurchaseParams,
@@ -172,13 +173,18 @@ router.post("/purchases", async (req, res): Promise<void> => {
 
   let total = 0;
   const createdItems = items.map((item) => {
+    const med = mockMedicines.find((m) => m.id === item.medicineId);
+    const medicineName = med ? med.name : `دواء ${item.medicineId}`;
     const subtotal = item.unitCost * item.quantity;
     total += subtotal;
+    if (med) {
+      med.quantity += item.quantity;
+    }
     return {
       id: nextPurchaseItemId++,
       purchaseId: nextPurchaseId,
       medicineId: item.medicineId,
-      medicineName: `دواء ${item.medicineId}`,
+      medicineName,
       quantity: item.quantity,
       unitCost: item.unitCost,
       subtotal,
