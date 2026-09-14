@@ -2,6 +2,10 @@
   command = "pnpm run build"
   publish = "artifacts/pharmacy/dist/public"
 
+[build.environment]
+  NODE_VERSION = "20"
+  PNPM_FLAGS = "--no-frozen-lockfile"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
