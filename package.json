@@ -4,7 +4,7 @@
   "packageManager": "pnpm@9.15.4",
   "scripts": {
     "start": "node artifacts/api-server/dist/index.mjs",
-    "build": "pnpm -r --if-present run build",
+    "build": "pnpm --filter @workspace/pharmacy run build && node -e \"require('fs').cpSync('artifacts/pharmacy/dist/public', 'dist', {recursive: true})\"",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
