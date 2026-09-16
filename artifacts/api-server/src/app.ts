@@ -34,8 +34,14 @@ import fs from "fs";
 
 app.use("/api", router);
 
-const staticPath = path.resolve(import.meta.dirname, "../../pharmacy/dist/public");
-if (fs.existsSync(staticPath)) {
+const staticCandidates = [
+  path.resolve(import.meta.dirname, "../../pharmacy/dist/public"),
+  path.resolve(import.meta.dirname, "../../../dist"),
+  path.resolve(process.cwd(), "artifacts/pharmacy/dist/public"),
+  path.resolve(process.cwd(), "dist"),
+];
+const staticPath = staticCandidates.find((p) => fs.existsSync(p));
+if (staticPath) {
   app.use(express.static(staticPath));
   app.use((req, res, next) => {
     if (req.path.startsWith("/api")) return next();
