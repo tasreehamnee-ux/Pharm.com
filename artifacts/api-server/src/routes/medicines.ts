@@ -42,7 +42,7 @@ export const mockMedicines: Array<{
     quantity: 45,
     minQuantity: 10,
     purchasePrice: "12.00",
-    sellingPrice: "18.50",
+    sellingPrice: "19.00",
     expiryDate: "2027-08-30",
     batchNumber: "B10293",
     createdAt: new Date(),
